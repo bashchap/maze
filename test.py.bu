@@ -1,0 +1,89 @@
+from sys import argv
+
+#import random
+
+MYPOS_X = 16
+MYPOS_Y = 16
+MYPOS_Z = -32
+
+GRID_WIDTH = 64
+GRID_HEIGHT = 64
+GRID_DEPTH = 64
+GRID_BOX = 24
+
+#'''These constants determine the resolution of fill of a GRID_BOX'''
+GRID_Z_INC_MIN = 1
+GRID_Y_INC_MIN = 1
+GRID_X_INC_MIN = 1
+
+
+#'''These constants define how quickly the major coordinates are navigated'''
+grid_Z_inc = GRID_BOX
+grid_X_inc = GRID_BOX
+grid_Y_inc = GRID_BOX
+
+FILENAME = 'plot_data.csv'
+PLOTDATA_FILE = open(FILENAME, 'w')
+PLOTDATA_FILE.truncate()
+
+def print_grid_xyz(x, y, z):
+    print ("%3d,%3d,%3d" % (x, y, z))
+
+def write_grid_xyz(x, y, z):
+    data = """\n%3d,%3d,%3d""" % (x, y, z)
+    PLOTDATA_FILE.write(data)
+
+def write_grid_box(pg_x, pg_y, pg_z):
+    for z in range(pg_z, pg_z + grid_Z_inc, GRID_Z_INC_MIN):
+
+        for y in range (pg_y, pg_y + grid_Y_inc, GRID_Y_INC_MIN):
+
+            for x in range (pg_x, pg_x + grid_X_inc, GRID_X_INC_MIN):
+
+# Determine what pixel to write to form an empty box
+# 1st condition successfully draws front and back faces of box
+# 2nd condition draws top and bottom
+# 3rd condition draws the sizes
+                if (z == pg_z or (z == pg_z + grid_Z_inc - GRID_Z_INC_MIN)) \
+                or ((z > pg_z) > 0 and (y == pg_y or y == pg_y + grid_Y_inc - GRID_Y_INC_MIN)) \
+                or (z > pg_z and (x == pg_x or x == pg_x + grid_X_inc - GRID_X_INC_MIN)):
+
+# Adjust coordinates for supplied position
+                    rel_x = x - MYPOS_X
+                    rel_y = y - MYPOS_Y
+                    rel_z = z - MYPOS_Z
+
+                    write_grid_xyz(rel_x, rel_y, rel_z)
+
+grid_X = 0
+grid_Y = 0
+grid_Z = 0
+
+PLOTDATA_FILE.write("X,Y,Z")
+write_grid_xyz(0, 0, 0)
+
+#'''Working the Z plane'''
+while grid_Z < GRID_DEPTH:
+    grid_Y = 0
+    Z_switch = ((int(grid_Z / GRID_BOX)) % 2)
+
+#'''Working the Y plane'''
+    while grid_Y < GRID_HEIGHT:
+        grid_X = 0
+        Y_switch = ((int(grid_Y / GRID_BOX)) % 2)
+#'''Working the X plane'''
+        while grid_X < GRID_WIDTH:
+            X_switch = ((int(grid_X / GRID_BOX)) % 2)
+
+#''' Determine if these coordinates represents the corner of a box to be printed'''
+            if (Z_switch ^ Y_switch ^ X_switch):
+                write_grid_box(grid_X, grid_Y, grid_Z)
+
+#'''Move to the next X grid point'''
+            grid_X += grid_X_inc
+#'''Move to the next Y grid point'''
+        grid_Y += grid_Y_inc
+#'''Move to the next Z grid point'''
+    grid_Z += grid_Z_inc
+
+PLOTDATA_FILE.close()
