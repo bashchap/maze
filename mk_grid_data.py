@@ -3,14 +3,14 @@ from sys import argv
 from math import sqrt
 #import random
 
-MYPOS_X = 64
-MYPOS_Y = 64
-MYPOS_Z = 64
+MYPOS_X = 128
+MYPOS_Y = 32
+MYPOS_Z = -64
 
 GRID_WIDTH = 128
-GRID_HEIGHT = 128
-GRID_DEPTH = 128
-GRID_BOX = 32
+GRID_HEIGHT = 64
+GRID_DEPTH = 64
+GRID_BOX = 64
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
 GRID_Z_INC_MIN = 1
