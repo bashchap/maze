@@ -3,9 +3,9 @@ from sys import argv
 from math import sqrt
 #import random
 
-ORIGIN_X = 0
-ORIGIN_Y = 0
-ORIGIN_Z = 0
+ORIGIN_X = -128
+ORIGIN_Y = -128
+ORIGIN_Z = 128
 
 GRID_WIDTH = 256
 GRID_HEIGHT = 256
@@ -13,7 +13,7 @@ GRID_DEPTH = 256
 GRID_BOX = 64
 GRID_BOX_X = 64
 GRID_BOX_Y = 64
-GRID_BOX_Z = 128
+GRID_BOX_Z = 64
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
 GRID_Z_INC_MIN = 1
@@ -84,6 +84,8 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
 
                     if rel_xyz_SQRT != 0 and rel_z >= 0 :
                         depthRatio = rel_xy_SQRT / rel_xyz_SQRT
+#                        depthRatio = .8
+
                         per_x = int(rel_x * depthRatio)
                         per_y = int(rel_y * depthRatio)
 
