@@ -3,22 +3,22 @@ from sys import argv
 from math import sqrt
 #import random
 
-ORIGIN_X = -128
-ORIGIN_Y = -128
-ORIGIN_Z = 128
+ORIGIN_X = -64
+ORIGIN_Y = -64
+ORIGIN_Z = -64
 
-GRID_WIDTH = 256
-GRID_HEIGHT = 256
-GRID_DEPTH = 256
+GRID_WIDTH = 128
+GRID_HEIGHT = 128
+GRID_DEPTH = 128
 GRID_BOX = 64
 GRID_BOX_X = 64
 GRID_BOX_Y = 64
 GRID_BOX_Z = 64
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
-GRID_Z_INC_MIN = 1
-GRID_Y_INC_MIN = 1
-GRID_X_INC_MIN = 1
+GRID_Z_INC_MIN = 4
+GRID_Y_INC_MIN = 4
+GRID_X_INC_MIN = 4
 
 
 #'''These constants define how quickly the major coordinates are navigated'''
@@ -52,22 +52,23 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
 
             for x in range (wgb_x, wgb_x + GRID_X_INC_MAJ, GRID_X_INC_MIN):
 
-# Determine what pixel to write to form an empty box
-# 1st condition successfully draws front and back faces of box
-# 2nd condition draws top and bottom
-# 3rd condition draws the sizes
-#                if (z == wgb_z or (z == wgb_z + GRID_Z_INC_MAJ - GRID_Z_INC_MIN)) \
-#                or ((z > wgb_z) > 0 and (y == wgb_y or y == wgb_y + GRID_Y_INC_MAJ - GRID_Y_INC_MIN)) \
-#                or (z > wgb_z and (x == wgb_x or x == wgb_x + GRID_X_INC_MAJ - GRID_X_INC_MIN)):
-
 # Will be True if an axis is at it's edge (front or back, top or bottom, left or right
                 z_edge = (z == wgb_z) or (z == wgb_z + GRID_Z_INC_MAJ - GRID_Z_INC_MIN)
                 y_edge = (y == wgb_y) or (y == wgb_y + GRID_Y_INC_MAJ - GRID_Y_INC_MIN)
                 x_edge = (x == wgb_x) or (x == wgb_x + GRID_X_INC_MAJ - GRID_X_INC_MIN)
 
+# Determine what pixel to write to form an empty box (faces filled)
+# 1st condition successfully draws front and back faces of box
+# 2nd condition draws top and bottom
+# 3rd condition draws the sizes
+                if (z_edge) \
+                or ((not z_edge) and (y_edge)) \
+                or (not z_edge) and (x_edge):
+
+# Determine what pixel to write to form the edges of a box
 # Conditions determine if when an edge is visible so can plot an outline
-                if (z_edge and (y_edge or x_edge)) or \
-                   ((not z_edge) and (x_edge and y_edge)):
+#                if (z_edge and (y_edge or x_edge)) or \
+#                   ((not z_edge) and (x_edge and y_edge)):
 
 # Create relative coordinates for supplied position
                     rel_x = x - ORIGIN_X
@@ -80,12 +81,9 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                     rel_xy_SQR=rel_x **2 + rel_y **2
                     rel_xy_SQRT=sqrt(rel_xy_SQR)
                     rel_xyz_SQRT=sqrt(rel_xy_SQR + rel_z **2)
-#                    rel_xyz_SQRT=sqrt(rel_x **2 + rel_y **2 + rel_z **2)
 
                     if rel_xyz_SQRT != 0 and rel_z >= 0 :
                         depthRatio = rel_xy_SQRT / rel_xyz_SQRT
-#                        depthRatio = .8
-
                         per_x = int(rel_x * depthRatio)
                         per_y = int(rel_y * depthRatio)
 
