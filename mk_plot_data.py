@@ -7,7 +7,7 @@ xy_plane = [0]
 xy_dups = 0
 xy_total = 0
 xyz_total = 0
-
+frame = 9
 
 GRID_WIDTH = 512
 GRID_HEIGHT = 128
@@ -32,6 +32,10 @@ GRID_Z_INC_MAJ = GRID_BOX_Z
 GRID_Y_INC_MAJ = GRID_BOX_Y
 GRID_X_INC_MAJ = GRID_BOX_X
 
+FILENAME4D = 'plot_data_4d.csv'
+PLOTDATA4D_FILE = open(FILENAME4D, 'w')
+PLOTDATA4D_FILE.truncate()
+
 FILENAME3D = 'plot_data_3d.csv'
 PLOTDATA3D_FILE = open(FILENAME3D, 'w')
 PLOTDATA3D_FILE.truncate()
@@ -43,7 +47,11 @@ PLOTDATA2D_FILE.truncate()
 def print_grid_xyz(x, y, z):
     print ("%3d,%3d,%3d" % (x, y, z))
 
-def write_grid_xyz(x, y, z):
+def write_grid4d_fxyz(f, x, y, z):
+    data = """\n%4d,%4d,%4d,%4d""" % (f, x, y, z)
+    PLOTDATA4D_FILE.write(data)
+
+def write_grid3d_xyz(x, y, z):
     data = """\n%3d,%3d,%3d""" % (x, y, z)
     PLOTDATA3D_FILE.write(data)
 
@@ -52,7 +60,7 @@ def write_grid2d_xyz(x, y):
     PLOTDATA2D_FILE.write(data)
 
 def write_grid_box(wgb_x, wgb_y, wgb_z):
-    global xy_plane, xy_dups, xy_total, xyz_total
+    global xy_plane, xy_dups, xy_total, xyz_total, frame
     for z in range(wgb_z, wgb_z + GRID_Z_INC_MAJ, GRID_Z_INC_MIN):
         z_edge = (z == wgb_z) or (z == wgb_z + GRID_Z_INC_MAJ - GRID_Z_INC_MIN)
 
@@ -81,7 +89,8 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                     rel_y = y - ORIGIN_Y
                     rel_z = z - ORIGIN_Z
 
-                    write_grid_xyz(rel_x, rel_y, rel_z)
+                    write_grid3d_xyz(rel_x, rel_y, rel_z)
+                    write_grid4d_fxyz(frame, rel_x, rel_y, rel_z)
 
 # Calculate 3d to 2d coordinates and add in perspective
                     rel_xy_SQR=rel_x **2 + rel_y **2
@@ -107,6 +116,7 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                         if xy_plane_index not in xy_plane:
                             xy_plane.append(xy_plane_index)
                             write_grid2d_xyz(per_x, per_y)
+                            
                         else:
                             xy_dups += 1
 
@@ -121,9 +131,11 @@ def print_totals():
 # | | | | | | (_| | | | | |
 # |_| |_| |_|\__,_|_|_| |_|
 
+PLOTDATA4D_FILE.write("Frame,X,Y,Z")
 PLOTDATA3D_FILE.write("X,Y,Z")
 PLOTDATA2D_FILE.write("X,Y,Z")
-write_grid_xyz(0, 0, 0)
+write_grid4d_fxyz(0, 0, 0, 0)
+write_grid3d_xyz(0, 0, 0)
 write_grid2d_xyz(0,0)
 
 #'''Working the Z plane'''
