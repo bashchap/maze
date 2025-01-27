@@ -3,10 +3,6 @@ from sys import argv
 from math import sqrt
 #import random
 
-ORIGIN_X = 0
-ORIGIN_Y = 0
-ORIGIN_Z = 0
-
 GRID_WIDTH = 256
 GRID_HEIGHT = 256
 GRID_DEPTH = 256
@@ -14,6 +10,10 @@ GRID_BOX = 64
 GRID_BOX_X = GRID_BOX
 GRID_BOX_Y = GRID_BOX
 GRID_BOX_Z = GRID_BOX
+
+ORIGIN_X = GRID_WIDTH / 2 - (GRID_BOX_X / 2)
+ORIGIN_Y = GRID_HEIGHT / 2 - (GRID_BOX_Y / 2)
+ORIGIN_Z = GRID_DEPTH / 2 - (GRID_BOX_Z / 2)
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
 GRID_Z_INC_MIN = 2
