@@ -48,5 +48,8 @@ plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
 # Add a title
 ax.set_title('3D Scatter Plot of Coordinates')
 
+# Set custom elevation and azimuth
+ax.view_init(elev=90, azim=-90)
+
 # Show the plot
 plt.show()
