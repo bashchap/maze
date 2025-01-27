@@ -3,10 +3,12 @@ from sys import argv
 from math import sqrt
 #import random
 
-GRID_WIDTH = 256
-GRID_HEIGHT = 256
-GRID_DEPTH = 256
-GRID_BOX = 128
+xy_plane = [0]
+
+GRID_WIDTH = 128
+GRID_HEIGHT = 128
+GRID_DEPTH = 128
+GRID_BOX = 48
 GRID_BOX_X = GRID_BOX
 GRID_BOX_Y = GRID_BOX
 GRID_BOX_Z = GRID_BOX
@@ -16,9 +18,9 @@ ORIGIN_Y = GRID_HEIGHT / 2 - (GRID_BOX_Y / 2)
 ORIGIN_Z = GRID_DEPTH / 2 - (GRID_BOX_Z / 2)
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
-GRID_Z_INC_MIN = 2
-GRID_Y_INC_MIN = 2
-GRID_X_INC_MIN = 2
+GRID_Z_INC_MIN = 1
+GRID_Y_INC_MIN = 1
+GRID_X_INC_MIN = 1
 
 
 #'''These constants define how quickly the major coordinates are navigated'''
@@ -81,7 +83,7 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                     rel_xyz_SQRT=sqrt(rel_xy_SQR + rel_z **2)
 
 #                    if rel_xy_SQRT != 0 and rel_z >= 0 :
-                    if rel_xy_SQRT != 0 : # and rel_z >= 0 :
+                    if rel_xy_SQRT != 0 and rel_z >= 0 :
                         depthRatio = (rel_xyz_SQRT / rel_xy_SQRT)
                         per_x = int(rel_x * depthRatio)
                         per_y = int(rel_y * depthRatio)
@@ -90,8 +92,21 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                         (rel_x, rel_y, rel_z, per_x, per_y, rel_xy_SQRT, \
                         rel_xyz_SQRT, depthRatio))
 
-                        write_grid2d_xyz(per_x, per_y)
+# If a 2D coordinate has previously been calculated skip it, otherwise store the coordinates.
+# This is because we've already translated from 3D to 2D so anything else at that coordinate is behind what's
+# already been drawn (since we're drawing from the direction we're facing forward only).
 
+                        xy_plane_index = per_x, per_y
+                        if xy_plane_index not in xy_plane:
+                            xy_plane.append(xy_plane_index)
+                            write_grid2d_xyz(per_x, per_y)
+
+
+#                  _       
+#  _ __ ___   __ _(_)_ __  
+# | '_ ` _ \ / _` | | '_ \ 
+# | | | | | | (_| | | | | |
+# |_| |_| |_|\__,_|_|_| |_|
 
 PLOTDATA3D_FILE.write("X,Y,Z")
 PLOTDATA2D_FILE.write("X,Y,Z")
