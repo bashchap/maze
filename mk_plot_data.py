@@ -80,7 +80,8 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                     rel_xy_SQRT=sqrt(rel_xy_SQR)
                     rel_xyz_SQRT=sqrt(rel_xy_SQR + rel_z **2)
 
-                    if rel_xy_SQRT != 0 and rel_z >= 0 :
+#                    if rel_xy_SQRT != 0 and rel_z >= 0 :
+                    if rel_xy_SQRT != 0 : # and rel_z >= 0 :
                         depthRatio = (rel_xyz_SQRT / rel_xy_SQRT)
                         per_x = int(rel_x * depthRatio)
                         per_y = int(rel_y * depthRatio)
