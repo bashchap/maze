@@ -31,7 +31,8 @@ ax.set_xlabel('X Coordinate')
 ax.set_ylabel('Y Coordinate')
 ax.set_zlabel('Z Coordinate')
 
-
+# Set custom elevation and azimuth
+ax.view_init(elev=90, azim=-90)
 
 ax.set_aspect('equal', adjustable='box')
 # Adjust layout to remove padding
