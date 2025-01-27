@@ -4,10 +4,14 @@ from math import sqrt
 #import random
 
 xy_plane = [0]
+xy_dups = 0
+xy_total = 0
+xyz_total = 0
+
 
 GRID_WIDTH = 512
-GRID_HEIGHT = 64
-GRID_DEPTH = 64
+GRID_HEIGHT = 128
+GRID_DEPTH = 128
 GRID_BOX = 64
 GRID_BOX_X = GRID_BOX
 GRID_BOX_Y = GRID_BOX
@@ -48,6 +52,7 @@ def write_grid2d_xyz(x, y):
     PLOTDATA2D_FILE.write(data)
 
 def write_grid_box(wgb_x, wgb_y, wgb_z):
+    global xy_plane, xy_dups, xy_total, xyz_total
     for z in range(wgb_z, wgb_z + GRID_Z_INC_MAJ, GRID_Z_INC_MIN):
         z_edge = (z == wgb_z) or (z == wgb_z + GRID_Z_INC_MAJ - GRID_Z_INC_MIN)
 
@@ -69,6 +74,7 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
 # Conditions determine if when an edge is visible so can plot an outline
                 if (z_edge and (y_edge or x_edge)) or \
                    ((not z_edge) and (x_edge and y_edge)):
+                    xyz_total += 1
 
 # Create relative coordinates for supplied position
                     rel_x = x - ORIGIN_X
@@ -84,6 +90,7 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
 
 #                    if rel_xy_SQRT != 0 and rel_z >= 0 :
                     if rel_xy_SQRT != 0 and rel_z >= 0 :
+                        xy_total += 1
                         depthRatio = (rel_xyz_SQRT / rel_xy_SQRT)
                         per_x = int(rel_x * depthRatio)
                         per_y = int(rel_y * depthRatio)
@@ -100,8 +107,14 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                         if xy_plane_index not in xy_plane:
                             xy_plane.append(xy_plane_index)
                             write_grid2d_xyz(per_x, per_y)
+                        else:
+                            xy_dups += 1
 
-
+def print_totals():
+    global xy_total, xy_dups
+    print("Total 3D points: %d" % xyz_total)
+    print("Total 2D points: %d" % xy_total)
+    print("Total 2D duplicates: %d" % xy_dups)
 #                  _       
 #  _ __ ___   __ _(_)_ __  
 # | '_ ` _ \ / _` | | '_ \ 
@@ -140,3 +153,4 @@ while grid_Z < GRID_DEPTH:
 
 PLOTDATA3D_FILE.close()
 PLOTDATA2D_FILE.close()
+print_totals()
