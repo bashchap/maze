@@ -115,8 +115,7 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                         xy_plane_index = per_x, per_y
                         if xy_plane_index not in xy_plane:
                             xy_plane.append(xy_plane_index)
-                            write_grid2d_xyz(per_x, per_y)
-                            
+                            write_grid2d_xyz(per_x, per_y)                           
                         else:
                             xy_dups += 1
 
