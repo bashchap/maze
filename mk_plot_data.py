@@ -11,23 +11,22 @@ xy_total = 0
 xyz_total = 0
 frame = 0
 
-GRID_WIDTH = 64
+GRID_WIDTH = 256
 GRID_HEIGHT = 64
-GRID_DEPTH = 32
-GRID_BOX = 32
+GRID_DEPTH = 128
+GRID_BOX = 64
 GRID_BOX_X = GRID_BOX
 GRID_BOX_Y = GRID_BOX
 GRID_BOX_Z = GRID_BOX
 
-BASE_ORIGIN_X = 0
-BASE_ORIGIN_Y = 0
-#BASE_ORIGIN_Z = int( GRID_DEPTH / 2 - (GRID_BOX_Z / 2) )
+BASE_ORIGIN_X = 128
+BASE_ORIGIN_Y = 32
 BASE_ORIGIN_Z = 0
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
-GRID_Z_INC_MIN = 1
-GRID_Y_INC_MIN = 1
-GRID_X_INC_MIN = 1
+GRID_Z_INC_MIN = 4
+GRID_Y_INC_MIN = 4
+GRID_X_INC_MIN = 4
 
 
 #'''These constants define how quickly the major coordinates are navigated'''
@@ -87,54 +86,54 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                     rel_z = z - ORIGIN_Z
 
 # Write 2D & 3D coordinates only for first frame
-                    if frame != 999999: # old code, remove it later, don't care about the frame here
-                        if frame == 0:
-                            write_grid3d_xyz(rel_x, rel_y, rel_z)
+                    if frame == 0:
+                        write_grid3d_xyz(rel_x, rel_y, rel_z)
 
 # Calculate 3d to 2d coordinates and add in perspective
-                        rel_xy_SQR=rel_x **2 + rel_y **2
-                        rel_xy_SQRT=sqrt(rel_xy_SQR)
-                        rel_xyz_SQRT=sqrt(rel_xy_SQR + rel_z **2)
+                    rel_xy_SQR = rel_x **2 + rel_y **2
+                    rel_xy_SQRT = sqrt(rel_xy_SQR)
+                    rel_xyz_SQR = rel_xy_SQR + rel_z **2
+                    rel_xyz_SQRT=sqrt(rel_xyz_SQR)
 
-                        if rel_xy_SQRT != 0 and rel_z >= 0 :
-                            xy_total += 1
-                            depthRatio = (rel_xyz_SQRT / rel_xy_SQRT)
-                            per_x = int(rel_x * depthRatio)
-                            per_y = int(rel_y * depthRatio)
+                    if rel_xy_SQRT != 0: # and rel_z >= 0 :
+                        xy_total += 1
+                        depthRatio = (rel_xyz_SQRT / rel_xy_SQRT)
+                        per_x = int(rel_x * depthRatio)
+                        per_y = int(rel_y * depthRatio)
 
-#                            print("%4d %4d %4d - %4d %4d - %3.4f %3.4f %3.4f" % \
-#                            (rel_x, rel_y, rel_z, per_x, per_y, rel_xy_SQRT, \
-#                            rel_xyz_SQRT, depthRatio))
+# Code here to write to screen
+                        screen_x = int( (per_x + BASE_ORIGIN_X) + 1) 
+                        screen_y = int( (per_y + BASE_ORIGIN_Y) + 1)
 
 # If a 2D coordinate has previously been calculated skip it, otherwise store the coordinates.
 # This is because we've already translated from 3D to 2D so anything else at that coordinate is behind what's
 # already been drawn (since we're drawing from the direction we're facing forward only).
-# Code here to write to screen
-                            screen_x = int( (per_x + BASE_ORIGIN_X) ) 
-                            screen_y = int( (per_y + BASE_ORIGIN_Y) )
+                        xy_plane_index = per_x, per_y
+                        if xy_plane_index not in xy_plane:
+                            xy_plane.append(xy_plane_index)
+                            if frame == 0:
+                                write_grid2d_xyz(per_x, per_y)
 
-                            xy_plane_index = screen_x, screen_y
-                            if xy_plane_index not in xy_plane:
-                                xy_plane.append(xy_plane_index)
-                                if frame == 0:
-                                    write_grid2d_xyz(screen_x, screen_y)
+                            if not (screen_x < 1 or screen_x > 150 or \
+                                screen_y < 1 or screen_y > 150 ):
+                                print_debug(frame, x, y, z, rel_x, rel_y, rel_z, rel_xy_SQR, rel_xy_SQRT, rel_xyz_SQR, rel_xyz_SQRT, depthRatio, per_x, per_y, screen_x, screen_y)
+#                                curses.wrapper(plot_char, screen_x, screen_y)
+#                            else:
+#                                print(f" {'EXCLUDED':30s}", end=' ')
+#                                print_debug(frame, x, y, z, rel_x, rel_y, rel_z, rel_xy_SQR, rel_xy_SQRT, rel_xyz_SQR, rel_xyz_SQRT, depthRatio, per_x, per_y, screen_x, screen_y)
+                        else:
+                            xy_dups += 1
 
+def print_debug(frame, x, y, z, rel_x, rel_y, rel_z, rel_xy_SQR, rel_xy_SQRT, rel_xyz_SQR, rel_xyz_SQRT, depthRatio, per_x, per_y, screen_x, screen_y):
+    print(f"{frame},{x},{y},{z},{rel_x},{rel_y},{rel_z},{rel_xy_SQR},{rel_xy_SQRT},{rel_xyz_SQR},{rel_xyz_SQRT},{depthRatio},{per_x},{per_y},{screen_x},{screen_y}")
 
-                                if not (screen_x < 1 or screen_y < 1):
-                                    curses.wrapper(plot_char, screen_x, screen_y)
-
-
-#                                print(f"> 3dx = {x:3d}  3dy = {y:3d}  2dx = {per_x:3d}  2dy = {per_y:3d}")
-
-#                                else:
-#                                    print(f"> 3dx = {x:3d}  3dy = {y:3d}  2dx = {per_x:3d}  2dy = {per_y:3d}")
-                            else:
-                                xy_dups += 1
+def print_debug_header():
+    print(f"frame, x, y, z, rel_x, rel_y, rel_z, rel_xy_SQR, rel_xy_SQRT, rel_xyz_SQR, rel_xyz_SQRT, depthRatio, per_x, per_y, screen_x, screen_y")
 
 def plot_char(stdscr, x, y):
     stdscr.addch(y, x, "#")
 
-def show_screen(stdscr):    
+def show_screen(stdscr):
     stdscr.refresh()
 
 def clear_screen(stdscr):
@@ -189,16 +188,21 @@ def walk_the_grid():
 # | | | | | | (_| | | | | |
 # |_| |_| |_|\__,_|_|_| |_|
 
+#curses.wrapper(clear_screen)
+print_debug_header()
 FRAME_MAX = int( GRID_BOX_Z * 2 / GRID_Z_INC_MIN )
-for ORIGIN_Z in range(BASE_ORIGIN_Z, BASE_ORIGIN_Z + GRID_BOX_Z * 10, GRID_X_INC_MIN ):
+print(f"FRAME_MAX: {FRAME_MAX}")
+for ORIGIN_Z in range(BASE_ORIGIN_Z, BASE_ORIGIN_Z + GRID_BOX_Z * 4, 1 ):
 #    print(f"> Progress: Frame {frame:3d} : {100 / FRAME_MAX * frame:3.4f} %")
-    curses.wrapper(clear_screen)
-    walk_the_grid()
-    curses.wrapper(show_screen)
-    xy_plane.clear()
-    time.sleep(0.5)
-    frame += 1
+    print(f"ORIGIN_Z: {ORIGIN_Z}")
 
+    walk_the_grid()
+#    curses.wrapper(show_screen)
+    xy_plane.clear()
+#    time.sleep(1)
+#    curses.wrapper(clear_screen)
+    frame += 1
+    quit()
 
 #curses.wrapper(screen_wait)
 PLOTDATA2D_FILE.close()
