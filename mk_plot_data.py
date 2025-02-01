@@ -5,28 +5,28 @@ import curses
 import time
 #import random
 
-xy_plane = [0]
+xy_plane = []
 xy_dups = 0
 xy_total = 0
 xyz_total = 0
 frame = 0
 
 GRID_WIDTH = 256
-GRID_HEIGHT = 64
+GRID_HEIGHT = 256
 GRID_DEPTH = 128
-GRID_BOX = 64
+GRID_BOX = 128
 GRID_BOX_X = GRID_BOX
 GRID_BOX_Y = GRID_BOX
 GRID_BOX_Z = GRID_BOX
 
-BASE_ORIGIN_X = 128
-BASE_ORIGIN_Y = 32
+BASE_ORIGIN_X = 0
+BASE_ORIGIN_Y = 172
 BASE_ORIGIN_Z = 0
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
-GRID_Z_INC_MIN = 4
-GRID_Y_INC_MIN = 4
-GRID_X_INC_MIN = 4
+GRID_Z_INC_MIN = 1
+GRID_Y_INC_MIN = 1
+GRID_X_INC_MIN = 1
 
 
 #'''These constants define how quickly the major coordinates are navigated'''
@@ -55,7 +55,6 @@ def write_grid2d_xyz(x, y):
 
 def write_grid_box(wgb_x, wgb_y, wgb_z):
     global ORIGIN_Z
-#    print(f"ORIGIN_Z: {ORIGIN_Z}")
     global xy_plane, xy_dups, xy_total, xyz_total, frame
     for z in range(wgb_z, wgb_z + GRID_Z_INC_MAJ, GRID_Z_INC_MIN):
         z_edge = (z == wgb_z) or (z == wgb_z + GRID_Z_INC_MAJ - GRID_Z_INC_MIN)
@@ -101,26 +100,14 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                         per_x = int(rel_x * depthRatio)
                         per_y = int(rel_y * depthRatio)
 
-# Code here to write to screen
-                        screen_x = int( (per_x + BASE_ORIGIN_X) + 1) 
-                        screen_y = int( (per_y + BASE_ORIGIN_Y) + 1)
-
 # If a 2D coordinate has previously been calculated skip it, otherwise store the coordinates.
 # This is because we've already translated from 3D to 2D so anything else at that coordinate is behind what's
 # already been drawn (since we're drawing from the direction we're facing forward only).
                         xy_plane_index = per_x, per_y
                         if xy_plane_index not in xy_plane:
-                            xy_plane.append(xy_plane_index)
+                            xy_plane.append((per_x, per_y))
                             if frame == 0:
                                 write_grid2d_xyz(per_x, per_y)
-
-                            if not (screen_x < 1 or screen_x > 150 or \
-                                screen_y < 1 or screen_y > 150 ):
-                                print_debug(frame, x, y, z, rel_x, rel_y, rel_z, rel_xy_SQR, rel_xy_SQRT, rel_xyz_SQR, rel_xyz_SQRT, depthRatio, per_x, per_y, screen_x, screen_y)
-#                                curses.wrapper(plot_char, screen_x, screen_y)
-#                            else:
-#                                print(f" {'EXCLUDED':30s}", end=' ')
-#                                print_debug(frame, x, y, z, rel_x, rel_y, rel_z, rel_xy_SQR, rel_xy_SQRT, rel_xyz_SQR, rel_xyz_SQRT, depthRatio, per_x, per_y, screen_x, screen_y)
                         else:
                             xy_dups += 1
 
@@ -142,12 +129,48 @@ def clear_screen(stdscr):
 def screen_wait(stdscr):
     stdscr.getch()
 
-
 def print_totals():
     global xy_total, xy_dups
     print("Total 3D points: %d" % xyz_total)
     print("Total 2D points: %d" % xy_total)
     print("Total 2D duplicates: %d" % xy_dups)
+
+def draw_screen():
+    global x_values, y_values
+    x_values , y_values = zip(*xy_plane)
+    curses.wrapper(plot_coordinates)
+
+def normalize(value, min_val, max_val, target_min, target_max):
+    """Normalize values to fit within target range."""
+    return int((value - min_val) / (max_val - min_val) * (target_max - target_min) + target_min)
+
+def plot_coordinates(stdscr):
+    curses.curs_set(0)  # Hide the cursor
+    stdscr.clear()
+    height, width = stdscr.getmaxyx()
+    
+    # Get min and max for normalization
+    min_x, max_x = min(x_values), max(x_values)
+    min_y, max_y = min(y_values), max(y_values)
+    
+    # Avoid division by zero
+    if min_x == max_x:
+        max_x += 1
+    if min_y == max_y:
+        max_y += 1
+    
+    for x, y in zip(x_values, y_values):
+        screen_x = normalize(x, min_x, max_x, 1, width - 2)
+        screen_y = normalize(y, min_y, max_y, 1, height - 2)
+        try:
+            stdscr.addch(screen_y, screen_x, '*')
+        except curses.error:
+            pass  # Ignore errors when trying to plot outside boundaries
+    
+    stdscr.refresh()
+    time.sleep(.25)
+    #stdscr.getch()  # Wait for user input before exiting
+
 
 PLOTDATA3D_FILE.write("X,Y,Z")
 PLOTDATA2D_FILE.write("X,Y,Z")
@@ -156,7 +179,6 @@ write_grid2d_xyz(0,0)
 
 def walk_the_grid():
     global ORIGIN_Z
-#    global GRID_WIDTH, GRID_HEIGHT, GRID_DEPTH, GRID_BOX, GRID_X_INC_MAJ, GRID_Y_INC_MAJ, GRID_Z_INC_MAJ
     #'''Working the Z plane'''
     grid_Z = 0
     while grid_Z < GRID_DEPTH:
@@ -189,22 +211,18 @@ def walk_the_grid():
 # |_| |_| |_|\__,_|_|_| |_|
 
 #curses.wrapper(clear_screen)
-print_debug_header()
-FRAME_MAX = int( GRID_BOX_Z * 2 / GRID_Z_INC_MIN )
-print(f"FRAME_MAX: {FRAME_MAX}")
-for ORIGIN_Z in range(BASE_ORIGIN_Z, BASE_ORIGIN_Z + GRID_BOX_Z * 4, 1 ):
+# print_debug_header()
+FRAME_MAX = int( GRID_BOX_Z * 2 / GRID_Z_INC_MIN ) # Number of frames to draw (2 boxes deep)
+
+for ORIGIN_Z in range(BASE_ORIGIN_Z, BASE_ORIGIN_Z + GRID_BOX_Z * 2, GRID_Z_INC_MIN ):
 #    print(f"> Progress: Frame {frame:3d} : {100 / FRAME_MAX * frame:3.4f} %")
-    print(f"ORIGIN_Z: {ORIGIN_Z}")
 
     walk_the_grid()
-#    curses.wrapper(show_screen)
+    draw_screen()
     xy_plane.clear()
-#    time.sleep(1)
-#    curses.wrapper(clear_screen)
     frame += 1
     quit()
 
-#curses.wrapper(screen_wait)
 PLOTDATA2D_FILE.close()
 PLOTDATA3D_FILE.close()
 print_totals()
