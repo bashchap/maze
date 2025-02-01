@@ -11,16 +11,16 @@ xy_total = 0
 xyz_total = 0
 frame = 0
 
-GRID_WIDTH = 256
-GRID_HEIGHT = 256
+GRID_WIDTH = 128
+GRID_HEIGHT = 128
 GRID_DEPTH = 128
-GRID_BOX = 128
+GRID_BOX = 64
 GRID_BOX_X = GRID_BOX
 GRID_BOX_Y = GRID_BOX
 GRID_BOX_Z = GRID_BOX
 
-BASE_ORIGIN_X = 0
-BASE_ORIGIN_Y = 172
+BASE_ORIGIN_X = GRID_WIDTH / 2 + GRID_BOX_X / 2
+BASE_ORIGIN_Y = GRID_HEIGHT / 2 + GRID_BOX_Y / 2
 BASE_ORIGIN_Z = 0
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
@@ -168,7 +168,7 @@ def plot_coordinates(stdscr):
             pass  # Ignore errors when trying to plot outside boundaries
     
     stdscr.refresh()
-    time.sleep(.25)
+    time.sleep(.1)
     #stdscr.getch()  # Wait for user input before exiting
 
 
@@ -214,14 +214,14 @@ def walk_the_grid():
 # print_debug_header()
 FRAME_MAX = int( GRID_BOX_Z * 2 / GRID_Z_INC_MIN ) # Number of frames to draw (2 boxes deep)
 
-for ORIGIN_Z in range(BASE_ORIGIN_Z, BASE_ORIGIN_Z + GRID_BOX_Z * 2, GRID_Z_INC_MIN ):
+for ORIGIN_Z in range(BASE_ORIGIN_Z, BASE_ORIGIN_Z + GRID_BOX_Z * 10 , 4 ):
 #    print(f"> Progress: Frame {frame:3d} : {100 / FRAME_MAX * frame:3.4f} %")
 
     walk_the_grid()
     draw_screen()
     xy_plane.clear()
     frame += 1
-    quit()
+#    quit()
 
 PLOTDATA2D_FILE.close()
 PLOTDATA3D_FILE.close()
