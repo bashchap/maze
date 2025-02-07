@@ -11,20 +11,21 @@ xy_total = 0
 xyz_total = 0
 frame = 0
 
-GRID_WIDTH = 128
-GRID_HEIGHT = 128
-GRID_DEPTH = 128
-GRID_BOX = 64
-GRID_BOX_X = GRID_BOX
-GRID_BOX_Y = GRID_BOX
-GRID_BOX_Z = GRID_BOX
+GRID_RATIO = 32
+GRID_WIDTH = 8 * GRID_RATIO
+GRID_HEIGHT = 8 * GRID_RATIO
+GRID_DEPTH = 8 * GRID_RATIO
+GRID_BOX = 8 * GRID_RATIO
+GRID_BOX_X = 4 * GRID_RATIO
+GRID_BOX_Y = 4 * GRID_RATIO
+GRID_BOX_Z = 4 * GRID_RATIO
 
 BASE_ORIGIN_X = GRID_WIDTH / 2 + GRID_BOX_X / 2
-BASE_ORIGIN_Y = GRID_HEIGHT / 2 + GRID_BOX_Y / 2
-BASE_ORIGIN_Z = 0
+BASE_ORIGIN_Y = GRID_HEIGHT / 2
+BASE_ORIGIN_Z = -GRID_BOX_Z
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
-GRID_Z_INC_MIN = 1
+GRID_Z_INC_MIN = 1 
 GRID_Y_INC_MIN = 1
 GRID_X_INC_MIN = 1
 
@@ -54,7 +55,7 @@ def write_grid2d_xyz(x, y):
     PLOTDATA2D_FILE.write(data)
 
 def write_grid_box(wgb_x, wgb_y, wgb_z):
-    global ORIGIN_Z
+    global ORIGIN_Z, ORIGIN_Y, ORIGIN_X
     global xy_plane, xy_dups, xy_total, xyz_total, frame
     for z in range(wgb_z, wgb_z + GRID_Z_INC_MAJ, GRID_Z_INC_MIN):
         z_edge = (z == wgb_z) or (z == wgb_z + GRID_Z_INC_MAJ - GRID_Z_INC_MIN)
@@ -80,8 +81,8 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                     xyz_total += 1
 
 # Create relative coordinates for supplied position
-                    rel_x = x - BASE_ORIGIN_X
-                    rel_y = y - BASE_ORIGIN_Y
+                    rel_x = x - ORIGIN_X
+                    rel_y = y - ORIGIN_Y
                     rel_z = z - ORIGIN_Z
 
 # Write 2D & 3D coordinates only for first frame
@@ -89,16 +90,15 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                         write_grid3d_xyz(rel_x, rel_y, rel_z)
 
 # Calculate 3d to 2d coordinates and add in perspective
-                    rel_xy_SQR = rel_x **2 + rel_y **2
-                    rel_xy_SQRT = sqrt(rel_xy_SQR)
-                    rel_xyz_SQR = rel_xy_SQR + rel_z **2
-                    rel_xyz_SQRT=sqrt(rel_xyz_SQR)
+#                    rel_xy_SQR = rel_x **2 + rel_y **2
+#                    rel_xy_SQRT = sqrt(rel_xy_SQR)
+#                    rel_xyz_SQR = rel_xy_SQR + rel_z **2
+#                    rel_xyz_SQRT = sqrt(rel_xyz_SQR)
 
-                    if rel_xy_SQRT != 0: # and rel_z >= 0 :
+                    if  rel_z > 0 and rel_z < ( rel_z + GRID_BOX_Z * 2) :
                         xy_total += 1
-                        depthRatio = (rel_xyz_SQRT / rel_xy_SQRT)
-                        per_x = int(rel_x * depthRatio)
-                        per_y = int(rel_y * depthRatio)
+                        per_x = int( ( rel_x / ( (rel_z / 100) + 1) ) / 2 )
+                        per_y = int( ( rel_y / ( (rel_z / 100) + 1) ) / 2 )
 
 # If a 2D coordinate has previously been calculated skip it, otherwise store the coordinates.
 # This is because we've already translated from 3D to 2D so anything else at that coordinate is behind what's
@@ -115,7 +115,7 @@ def print_debug(frame, x, y, z, rel_x, rel_y, rel_z, rel_xy_SQR, rel_xy_SQRT, re
     print(f"{frame},{x},{y},{z},{rel_x},{rel_y},{rel_z},{rel_xy_SQR},{rel_xy_SQRT},{rel_xyz_SQR},{rel_xyz_SQRT},{depthRatio},{per_x},{per_y},{screen_x},{screen_y}")
 
 def print_debug_header():
-    print(f"frame, x, y, z, rel_x, rel_y, rel_z, rel_xy_SQR, rel_xy_SQRT, rel_xyz_SQR, rel_xyz_SQRT, depthRatio, per_x, per_y, screen_x, screen_y")
+    print(f"frame, x, y, z, rel_x, rel_y, rel_z, rel_xy_SQR, rel_xy_SQRT, rel_xyz_SQR, rel_xyz_SQRT, depthRatio_x, per_x, per_y, screen_x, screen_y")
 
 def plot_char(stdscr, x, y):
     stdscr.addch(y, x, "#")
@@ -137,7 +137,10 @@ def print_totals():
 
 def draw_screen():
     global x_values, y_values
-    x_values , y_values = zip(*xy_plane)
+    x_values , y_values = zip(*xy_plane) # Create x and y lists from xy_plane
+#    x_values = [ x + BASE_ORIGIN_X for x in x_values ] # Add back in the origin
+#    y_values = [ y + BASE_ORIGIN_Y for y in y_values ] # Add back in the origin
+
     curses.wrapper(plot_coordinates)
 
 def normalize(value, min_val, max_val, target_min, target_max):
@@ -146,52 +149,58 @@ def normalize(value, min_val, max_val, target_min, target_max):
 
 def plot_coordinates(stdscr):
     curses.curs_set(0)  # Hide the cursor
-    stdscr.clear()
+    stdscr.erase()
     height, width = stdscr.getmaxyx()
+    screen_center_x = width / 2
+    screen_centre_y = height / 2
     
     # Get min and max for normalization
-    min_x, max_x = min(x_values), max(x_values)
-    min_y, max_y = min(y_values), max(y_values)
+    # min_x, max_x = min(x_values), max(x_values)
+    # min_y, max_y = min(y_values), max(y_values)
+    
+    min_x, min_y = 1, 1
+    max_x, max_y = width - 1, height - 1
     
     # Avoid division by zero
-    if min_x == max_x:
-        max_x += 1
-    if min_y == max_y:
-        max_y += 1
+    #if min_x == max_x:
+    #    max_x += 1
+    #if min_y == max_y:
+    #    max_y += 1
     
     for x, y in zip(x_values, y_values):
-        screen_x = normalize(x, min_x, max_x, 1, width - 2)
-        screen_y = normalize(y, min_y, max_y, 1, height - 2)
-        try:
-            stdscr.addch(screen_y, screen_x, '*')
-        except curses.error:
-            pass  # Ignore errors when trying to plot outside boundaries
-    
+#        screen_x = normalize(x, min_x, max_x, 1, width - 2)
+#        screen_y = normalize(y, min_y, max_y, 1, height - 2)
+        screen_x = int( screen_center_x + x )
+        screen_y = int( screen_centre_y + y )
+        if not (screen_x < 0 or screen_x >= width - 1 or screen_y < 0 or screen_y >= height - 1):
+            try:
+                stdscr.addch(screen_y, screen_x, '*')
+            except curses.error:
+                pass  # Ignore errors when trying to plot outside boundaries
+
     stdscr.refresh()
     time.sleep(.1)
+    #stdscr.erase()
     #stdscr.getch()  # Wait for user input before exiting
 
 
-PLOTDATA3D_FILE.write("X,Y,Z")
-PLOTDATA2D_FILE.write("X,Y,Z")
-write_grid3d_xyz(0, 0, 0)
-write_grid2d_xyz(0,0)
+
 
 def walk_the_grid():
-    global ORIGIN_Z
+    global ORIGIN_Z, ORIGIN_Y, ORIGIN_X
     #'''Working the Z plane'''
     grid_Z = 0
     while grid_Z < GRID_DEPTH:
         grid_Y = 0
-        Z_switch = ((int(grid_Z / GRID_BOX)) % 2)
+        Z_switch = ((int(grid_Z / GRID_Z_INC_MAJ)) % 2)
 
     #'''Working the Y plane'''
         while grid_Y < GRID_HEIGHT:
             grid_X = 0
-            Y_switch = ((int(grid_Y / GRID_BOX)) % 2)
+            Y_switch = ((int(grid_Y / GRID_Y_INC_MAJ)) % 2)
     #'''Working the X plane'''
             while grid_X < GRID_WIDTH:
-                X_switch = ((int(grid_X / GRID_BOX)) % 2)
+                X_switch = ((int(grid_X / GRID_X_INC_MAJ)) % 2)
 
     #''' Determine if these coordinates represents the corner of a box to be printed'''
                 if (Z_switch ^ Y_switch ^ X_switch):
@@ -210,18 +219,26 @@ def walk_the_grid():
 # | | | | | | (_| | | | | |
 # |_| |_| |_|\__,_|_|_| |_|
 
-#curses.wrapper(clear_screen)
-# print_debug_header()
-FRAME_MAX = int( GRID_BOX_Z * 2 / GRID_Z_INC_MIN ) # Number of frames to draw (2 boxes deep)
+PLOTDATA3D_FILE.write("X,Y,Z")
+PLOTDATA2D_FILE.write("X,Y,Z")
+write_grid3d_xyz(0, 0, 0)
+write_grid2d_xyz(0, 0)
 
-for ORIGIN_Z in range(BASE_ORIGIN_Z, BASE_ORIGIN_Z + GRID_BOX_Z * 10 , 4 ):
-#    print(f"> Progress: Frame {frame:3d} : {100 / FRAME_MAX * frame:3.4f} %")
+MAX_FRAMES = 64
+current_frame = 0
+ORIGIN_X = BASE_ORIGIN_X
+ORIGIN_Y = BASE_ORIGIN_Y
+ORIGIN_Z = BASE_ORIGIN_Z
+
+while current_frame < MAX_FRAMES:
+    ORIGIN_X -= GRID_X_INC_MIN * 4
+#    ORIGIN_Z += GRID_Z_INC_MIN * 4
 
     walk_the_grid()
     draw_screen()
     xy_plane.clear()
-    frame += 1
-#    quit()
+    current_frame += 1
+    #quit()
 
 PLOTDATA2D_FILE.close()
 PLOTDATA3D_FILE.close()
