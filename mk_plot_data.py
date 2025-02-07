@@ -9,23 +9,26 @@ xy_plane = []
 xy_dups = 0
 xy_total = 0
 xyz_total = 0
-frame = 0
+current_frame = 0
 
 GRID_RATIO = 32
-GRID_WIDTH = 8 * GRID_RATIO
-GRID_HEIGHT = 8 * GRID_RATIO
-GRID_DEPTH = 8 * GRID_RATIO
+
+GRID_WIDTH = 32 * GRID_RATIO
+GRID_HEIGHT = 16 * GRID_RATIO
+GRID_DEPTH = 24 * GRID_RATIO
+
 GRID_BOX = 8 * GRID_RATIO
-GRID_BOX_X = 4 * GRID_RATIO
-GRID_BOX_Y = 4 * GRID_RATIO
-GRID_BOX_Z = 4 * GRID_RATIO
+
+GRID_BOX_X = 8 * GRID_RATIO
+GRID_BOX_Y = 8 * GRID_RATIO
+GRID_BOX_Z = 8 * GRID_RATIO
 
 BASE_ORIGIN_X = GRID_WIDTH / 2 + GRID_BOX_X / 2
-BASE_ORIGIN_Y = GRID_HEIGHT / 2
-BASE_ORIGIN_Z = -GRID_BOX_Z
+BASE_ORIGIN_Y = GRID_HEIGHT / 2 + GRID_BOX_Y / 2
+BASE_ORIGIN_Z = GRID_BOX_Z
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
-GRID_Z_INC_MIN = 1 
+GRID_Z_INC_MIN = 4 
 GRID_Y_INC_MIN = 1
 GRID_X_INC_MIN = 1
 
@@ -56,7 +59,7 @@ def write_grid2d_xyz(x, y):
 
 def write_grid_box(wgb_x, wgb_y, wgb_z):
     global ORIGIN_Z, ORIGIN_Y, ORIGIN_X
-    global xy_plane, xy_dups, xy_total, xyz_total, frame
+    global xy_plane, xy_dups, xy_total, xyz_total, current_frame
     for z in range(wgb_z, wgb_z + GRID_Z_INC_MAJ, GRID_Z_INC_MIN):
         z_edge = (z == wgb_z) or (z == wgb_z + GRID_Z_INC_MAJ - GRID_Z_INC_MIN)
 
@@ -86,7 +89,7 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                     rel_z = z - ORIGIN_Z
 
 # Write 2D & 3D coordinates only for first frame
-                    if frame == 0:
+                    if current_frame == 0:
                         write_grid3d_xyz(rel_x, rel_y, rel_z)
 
 # Calculate 3d to 2d coordinates and add in perspective
@@ -95,7 +98,7 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
 #                    rel_xyz_SQR = rel_xy_SQR + rel_z **2
 #                    rel_xyz_SQRT = sqrt(rel_xyz_SQR)
 
-                    if  rel_z > 0 and rel_z < ( rel_z + GRID_BOX_Z * 2) :
+                    if  rel_z > 0 and rel_z < ( rel_z + GRID_BOX_Z * 8) :
                         xy_total += 1
                         per_x = int( ( rel_x / ( (rel_z / 100) + 1) ) / 2 )
                         per_y = int( ( rel_y / ( (rel_z / 100) + 1) ) / 2 )
@@ -106,7 +109,7 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                         xy_plane_index = per_x, per_y
                         if xy_plane_index not in xy_plane:
                             xy_plane.append((per_x, per_y))
-                            if frame == 0:
+                            if current_frame == 0:
                                 write_grid2d_xyz(per_x, per_y)
                         else:
                             xy_dups += 1
@@ -179,7 +182,7 @@ def plot_coordinates(stdscr):
                 pass  # Ignore errors when trying to plot outside boundaries
 
     stdscr.refresh()
-    time.sleep(.1)
+    time.sleep(10)
     #stdscr.erase()
     #stdscr.getch()  # Wait for user input before exiting
 
@@ -224,16 +227,15 @@ PLOTDATA2D_FILE.write("X,Y,Z")
 write_grid3d_xyz(0, 0, 0)
 write_grid2d_xyz(0, 0)
 
-MAX_FRAMES = 64
+MAX_FRAMES = 128
 current_frame = 0
 ORIGIN_X = BASE_ORIGIN_X
 ORIGIN_Y = BASE_ORIGIN_Y
-ORIGIN_Z = BASE_ORIGIN_Z
+ORIGIN_Z = BASE_ORIGIN_Z - 128
 
 while current_frame < MAX_FRAMES:
-    ORIGIN_X -= GRID_X_INC_MIN * 4
-#    ORIGIN_Z += GRID_Z_INC_MIN * 4
-
+    ORIGIN_X += GRID_X_INC_MIN * 1
+    ORIGIN_Z += GRID_Z_INC_MIN * 4
     walk_the_grid()
     draw_screen()
     xy_plane.clear()
