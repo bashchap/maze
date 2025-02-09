@@ -38,13 +38,7 @@ GRID_X_INC_MAJ = GRID_BOX_X
 GRID_Y_INC_MAJ = GRID_BOX_Y
 GRID_Z_INC_MAJ = GRID_BOX_Z
 
-FILENAME3D = 'plot_data_3d.csv'
-PLOTDATA3D_FILE = open(FILENAME3D, 'w')
-PLOTDATA3D_FILE.truncate()
 
-FILENAME2D = 'plot_data_2d.csv'
-PLOTDATA2D_FILE = open(FILENAME2D, 'w')
-PLOTDATA2D_FILE.truncate()
 
 def print_grid_xyz(x, y, z):
     print ("%3d,%3d,%3d" % (x, y, z))
@@ -89,7 +83,7 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                     rel_z = z - ORIGIN_Z
 
 # Write 2D & 3D coordinates only for first frame
-                    if current_frame == 0:
+                    if current_frame != -1 :
                         write_grid3d_xyz(rel_x, rel_y, rel_z)
 
 # Calculate 3d to 2d coordinates and add in perspective
@@ -109,7 +103,7 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                         xy_plane_index = per_x, per_y
                         if xy_plane_index not in xy_plane:
                             xy_plane.append((per_x, per_y))
-                            if current_frame == 0:
+                            if current_frame != -1:
                                 write_grid2d_xyz(per_x, per_y)
                         else:
                             xy_dups += 1
@@ -182,7 +176,7 @@ def plot_coordinates(stdscr):
                 pass  # Ignore errors when trying to plot outside boundaries
 
     stdscr.refresh()
-    time.sleep(10)
+    #time.sleep(10)
     #stdscr.erase()
     #stdscr.getch()  # Wait for user input before exiting
 
@@ -222,26 +216,40 @@ def walk_the_grid():
 # | | | | | | (_| | | | | |
 # |_| |_| |_|\__,_|_|_| |_|
 
-PLOTDATA3D_FILE.write("X,Y,Z")
-PLOTDATA2D_FILE.write("X,Y,Z")
-write_grid3d_xyz(0, 0, 0)
-write_grid2d_xyz(0, 0)
 
-MAX_FRAMES = 128
+
+MAX_FRAMES = 256
 current_frame = 0
 ORIGIN_X = BASE_ORIGIN_X
 ORIGIN_Y = BASE_ORIGIN_Y
 ORIGIN_Z = BASE_ORIGIN_Z - 128
 
 while current_frame < MAX_FRAMES:
-    ORIGIN_X += GRID_X_INC_MIN * 1
-    ORIGIN_Z += GRID_Z_INC_MIN * 4
+    file_frame = f"{current_frame:04d}"
+
+    FILENAME3D = f"plot_data_3d_{file_frame}.csv"
+    PLOTDATA3D_FILE = open(FILENAME3D, 'w')
+    PLOTDATA3D_FILE.truncate()
+
+    FILENAME2D = f"plot_data_2d_{file_frame}.csv"
+    PLOTDATA2D_FILE = open(FILENAME2D, 'w')
+    PLOTDATA2D_FILE.truncate()
+
+    PLOTDATA3D_FILE.write("X,Y,Z")
+    PLOTDATA2D_FILE.write("X,Y,Z")
+    write_grid3d_xyz(0, 0, 0)
+    write_grid2d_xyz(0, 0)
+
     walk_the_grid()
     draw_screen()
+
+    PLOTDATA2D_FILE.close()
+    PLOTDATA3D_FILE.close()
     xy_plane.clear()
+
+    ORIGIN_X += GRID_X_INC_MIN * 1
+    ORIGIN_Z += GRID_Z_INC_MIN * 1
     current_frame += 1
     #quit()
 
-PLOTDATA2D_FILE.close()
-PLOTDATA3D_FILE.close()
 print_totals()
