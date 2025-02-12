@@ -14,9 +14,9 @@ current_frame = 0
 
 GRID_RATIO = 4
 
-GRID_WIDTH = 16 * GRID_RATIO
-GRID_HEIGHT =16 * GRID_RATIO
-GRID_DEPTH = 16 * GRID_RATIO
+GRID_WIDTH = 32 * GRID_RATIO
+GRID_HEIGHT =32 * GRID_RATIO
+GRID_DEPTH = 32 * GRID_RATIO
 
 GRID_BOX = 32 * GRID_RATIO
 
@@ -29,9 +29,9 @@ BASE_ORIGIN_Y = GRID_HEIGHT / 2
 BASE_ORIGIN_Z = GRID_DEPTH / 2
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
-GRID_Z_INC_MIN = 1 
-GRID_Y_INC_MIN = 1
-GRID_X_INC_MIN = 1
+GRID_Z_INC_MIN = 2
+GRID_Y_INC_MIN = 2
+GRID_X_INC_MIN = 2
 
 
 #'''These constants define how quickly the major coordinates are navigated'''
@@ -86,9 +86,12 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
 
 # Perform rotation around Z axis - THIS WORKS!!!
                     xp, yp, zp = rel_x, rel_y, rel_z
+#                    print(f"b4 rotation: xp = {xp}, yp = {yp}, zp = {zp}")                    
                     z_rotation_val = math.radians(z_rotation)
-                    Zxp = xp * math.sin(z_rotation_val) - yp * math.cos(z_rotation_val)
-                    Zyp = xp * math.cos(z_rotation_val) + yp * math.sin(z_rotation_val)
+#                    Zxp = xp * math.sin(z_rotation_val) - yp * math.cos(z_rotation_val)
+#                    Zyp = xp * math.cos(z_rotation_val) + yp * math.sin(z_rotation_val)
+                    Zxp = xp * math.cos(z_rotation_val) - yp * math.sin(z_rotation_val)
+                    Zyp = xp * math.sin(z_rotation_val) + yp * math.cos(z_rotation_val)                    
                     xp, yp = Zxp, Zyp
 #                    print(f"Z rotation: xp = {xp}, yp = {yp}, zp = {zp}")
 
@@ -231,7 +234,7 @@ def walk_the_grid():
                 X_switch = ((int(grid_X / GRID_X_INC_MAJ)) % 2)
 
     #''' Determine if these coordinates represents the corner of a box to be printed'''
-                if (Z_switch ^ Y_switch ^ X_switch) or True:
+                if (Z_switch ^ Y_switch ^ X_switch):
                     write_grid_box(grid_X, grid_Y, grid_Z)
 
     #'''Move to the next X grid point'''
@@ -256,11 +259,11 @@ ORIGIN_Y = GRID_HEIGHT / 2
 ORIGIN_Z = GRID_DEPTH / 2
 
 x_rotation = 0
-x_rotation_inc = 2.5
+x_rotation_inc = .5
 y_rotation = 0
-y_rotation_inc = 1
+y_rotation_inc = -1 * 2
 z_rotation = 0
-z_rotation_inc = 10
+z_rotation_inc = 0
 
 while current_frame < MAX_FRAMES:
     file_frame = f"{current_frame:04d}"
@@ -277,8 +280,8 @@ while current_frame < MAX_FRAMES:
 
     PLOTDATA3D_FILE.write("X,Y,Z")
     PLOTDATA2D_FILE.write("X,Y,Z")
-    write_grid3d_xyz(0, 0, 0)
-    write_grid2d_xyz(0, 0)
+    #write_grid3d_xyz(0, 0, 0)
+    #write_grid2d_xyz(0, 0)
 
     walk_the_grid()
     draw_screen()
@@ -295,4 +298,4 @@ while current_frame < MAX_FRAMES:
     z_rotation += z_rotation_inc
     #quit()
 
-print_totals()
+# print_totals()

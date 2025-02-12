@@ -11,7 +11,7 @@ if not {'X', 'Y', 'Z'}.issubset(data.columns):
     raise ValueError("The CSV file must have 'X', 'Y', 'Z' columns.")
 
 # Filter out rows where Z < 0
-data = data[data['Z'] >= 0]
+#data = data[data['Z'] >= 0]
 
 # Extract coordinates
 x = data['X']
