@@ -14,8 +14,8 @@ current_frame = 0
 
 GRID_RATIO = 4
 
-GRID_WIDTH = 48 * GRID_RATIO
-GRID_HEIGHT = 16 * GRID_RATIO
+GRID_WIDTH = 16 * GRID_RATIO
+GRID_HEIGHT =16 * GRID_RATIO
 GRID_DEPTH = 16 * GRID_RATIO
 
 GRID_BOX = 32 * GRID_RATIO
@@ -29,7 +29,7 @@ BASE_ORIGIN_Y = GRID_HEIGHT / 2
 BASE_ORIGIN_Z = GRID_DEPTH / 2
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
-GRID_Z_INC_MIN = 4 
+GRID_Z_INC_MIN = 1 
 GRID_Y_INC_MIN = 1
 GRID_X_INC_MIN = 1
 
@@ -84,23 +84,34 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
                     rel_y = y - ORIGIN_Y
                     rel_z = z - ORIGIN_Z
 
-# Perform rotation around Z axis
+# Perform rotation around Z axis - THIS WORKS!!!
+                    xp, yp, zp = rel_x, rel_y, rel_z
                     z_rotation_val = math.radians(z_rotation)
-                    xp = rel_x * math.sin(z_rotation_val) - rel_y * math.cos(z_rotation_val)
-                    yp = rel_x * math.cos(z_rotation_val) + rel_y * math.sin(z_rotation_val)
-                    zp = rel_z
+                    Zxp = xp * math.sin(z_rotation_val) - yp * math.cos(z_rotation_val)
+                    Zyp = xp * math.cos(z_rotation_val) + yp * math.sin(z_rotation_val)
+                    xp, yp = Zxp, Zyp
+#                    print(f"Z rotation: xp = {xp}, yp = {yp}, zp = {zp}")
 
 # Perform rotation around X axis
                     x_rotation_val = math.radians(x_rotation)
-                    Xzp = zp * math.sin(x_rotation_val) - yp * math.cos(x_rotation_val)
-                    Xyp = zp * math.cos(x_rotation_val) + yp * math.sin(x_rotation_val)
+#                    Xzp = zp * math.sin(x_rotation_val) - yp * math.cos(x_rotation_val)
+#                    Xyp = zp * math.cos(x_rotation_val) + yp * math.sin(x_rotation_val)
+                    Xzp = zp * math.cos(x_rotation_val) - yp * math.sin(x_rotation_val)
+                    Xyp = zp * math.sin(x_rotation_val) + yp * math.cos(x_rotation_val)
+
+                    yp, zp = Xyp, Xzp
+#                    print(f"X rotation: xp = {xp}, yp = {yp}, zp = {zp}")
 
 # Perform rotation around Y axis
                     y_rotation_val = math.radians(y_rotation)
-                    Yxp = xp * math.sin(y_rotation_val) - Xzp * math.cos(y_rotation_val)
-                    Yzp = Xzp * math.cos(y_rotation_val) + Xzp * math.sin(y_rotation_val)
+#                    Yxp = xp * math.sin(y_rotation_val) - zp * math.cos(y_rotation_val)
+#                    Yzp = xp * math.cos(y_rotation_val) + zp * math.sin(y_rotation_val)
+                    Yxp = xp * math.cos(y_rotation_val) - zp * math.sin(y_rotation_val)
+                    Yzp = xp * math.sin(y_rotation_val) + zp * math.cos(y_rotation_val)                    
+                    xp, zp = Yxp, Yzp
+#                    print(f"Y rotation: xp = {xp}, yp = {yp}, zp = {zp}")
+#                    quit()
 
-                    xp, yp, zp = Yxp, Xyp, Yzp
 # Write 2D & 3D coordinates only for first frame
                     if current_frame != -1 :
                         write_grid3d_xyz(xp, yp, zp)
@@ -111,7 +122,7 @@ def write_grid_box(wgb_x, wgb_y, wgb_z):
 #                    rel_xyz_SQR = rel_xy_SQR + rel_z **2
 #                    rel_xyz_SQRT = sqrt(rel_xyz_SQR)
 
-                    if True: #zp > 0:
+                    if zp != -999:
                         xy_total += 1
                         per_x = int( ( xp / ( (zp / 100) + 1) ) / 2 )
                         per_y = int( ( yp / ( (zp / 100) + 1) ) / 2 )
@@ -154,8 +165,8 @@ def print_totals():
 def draw_screen():
     global x_values, y_values
     x_values , y_values = zip(*xy_plane) # Create x and y lists from xy_plane
-#    x_values = [ x + BASE_ORIGIN_X for x in x_values ] # Add back in the origin
-#    y_values = [ y + BASE_ORIGIN_Y for y in y_values ] # Add back in the origin
+ #   x_values = [ x + BASE_ORIGIN_X for x in x_values ] # Add back in the origin
+ #   y_values = [ y + BASE_ORIGIN_Y for y in y_values ] # Add back in the origin
 
     curses.wrapper(plot_coordinates)
 
@@ -242,14 +253,14 @@ MAX_FRAMES = 256
 current_frame = 0
 ORIGIN_X = GRID_WIDTH / 2
 ORIGIN_Y = GRID_HEIGHT / 2
-ORIGIN_Z = 0
+ORIGIN_Z = GRID_DEPTH / 2
 
-x_rotation = 90
-x_rotation_inc = 5
-y_rotation = 90
-y_rotation_inc = 5
+x_rotation = 0
+x_rotation_inc = 2.5
+y_rotation = 0
+y_rotation_inc = 1
 z_rotation = 0
-z_rotation_inc = 5
+z_rotation_inc = 10
 
 while current_frame < MAX_FRAMES:
     file_frame = f"{current_frame:04d}"
