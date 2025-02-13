@@ -171,26 +171,26 @@ def XYZ_ROTATION(theta, p1, p2):
 #                     
 
 
-GRID_RATIO = 6
+GRID_RATIO = 4
 
 GRID_WIDTH = 64 * GRID_RATIO
 GRID_HEIGHT =32 * GRID_RATIO
-GRID_DEPTH = 16 * GRID_RATIO
+GRID_DEPTH = 32 * GRID_RATIO
 
 GRID_BOX = 32 * GRID_RATIO
 
-GRID_BOX_X =  16 * GRID_RATIO
-GRID_BOX_Y =  16 * GRID_RATIO
-GRID_BOX_Z =  16 * GRID_RATIO
+GRID_BOX_X =  32 * GRID_RATIO
+GRID_BOX_Y =  32 * GRID_RATIO
+GRID_BOX_Z =  32 * GRID_RATIO
 
 BASE_ORIGIN_X = GRID_WIDTH / 2
 BASE_ORIGIN_Y = GRID_HEIGHT / 2
 BASE_ORIGIN_Z = GRID_DEPTH / 2
 
 #'''These constants determine the resolution of fill of a GRID_BOX'''
-GRID_Z_INC_MIN = 4
-GRID_Y_INC_MIN = 4
-GRID_X_INC_MIN = 4
+GRID_Z_INC_MIN = 1
+GRID_Y_INC_MIN = 1
+GRID_X_INC_MIN = 1
 
 #'''These constants define how quickly the major coordinates are navigated'''
 GRID_X_INC_MAJ = GRID_BOX_X
