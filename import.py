@@ -36,6 +36,8 @@ def transform_object(TO_INC):
         rel_x = (xo - OBJECT_ORIGIN_X) * SCALE_RATIO
         rel_y = (yo - OBJECT_ORIGIN_Y) * SCALE_RATIO
         rel_z = (zo - OBJECT_ORIGIN_Z) * SCALE_RATIO
+        
+        rel_x, rel_y, rel_z = noise(rel_x, rel_y, rel_z)
 
         xp, yp = XYZ_ROTATION(z_rotation, rel_x, rel_y)
         zp, yp = XYZ_ROTATION(x_rotation, rel_z, yp)
@@ -48,13 +50,18 @@ def transform_object(TO_INC):
         per_y += OBJECT_ORIGIN_Y
 
         xy_plane_index = per_x, per_y
-        if xy_plane_index not in xy_plane and zp > 0:
+        if xy_plane_index not in xy_plane: # and zp > 0:
             xy_plane.append((per_x, per_y))
 
 def perspective_projection(xp, yp, zp):
     pp_x = int( xp / ( zp / 100 + 1) )
     pp_y = int( yp / ( zp / 100 + 1) )
     return pp_x, pp_y
+
+def noise(x, y, z):
+    n1 = ((x + y + z) / 2) * math.tan(math.radians(x + y + z)) 
+    return x + n1, y + n1, z + n1
+#    return x, y, z
 
 def draw_screen():
     global x_values, y_values
@@ -101,7 +108,7 @@ file_path = "object_data.csv"
 import_object(file_path, 0, 0, 0) #
 SCREEN_RATIO_X = 1
 SCREEN_RATIO_Y = .5
-SCALE_RATIO = 1
+SCALE_RATIO = 2
 TO_INC = 1
 
 
