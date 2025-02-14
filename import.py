@@ -33,25 +33,27 @@ def transform_object(TO_INC):
     for vector in range(0, len( x_object ), TO_INC ):
         xo, yo, zo = x_object[vector], y_object[vector], z_object[vector]
 
-        rel_x = (xo * SCALE_RATIO) - ORIGIN_X
-        rel_y = (yo * SCALE_RATIO) - ORIGIN_Y
-        rel_z = (zo * SCALE_RATIO) - ORIGIN_Z
+        rel_x = (xo - OBJECT_ORIGIN_X) * SCALE_RATIO
+        rel_y = (yo - OBJECT_ORIGIN_Y) * SCALE_RATIO
+        rel_z = (zo - OBJECT_ORIGIN_Z) * SCALE_RATIO
 
         xp, yp = XYZ_ROTATION(z_rotation, rel_x, rel_y)
         zp, yp = XYZ_ROTATION(x_rotation, rel_z, yp)
         xp, zp = XYZ_ROTATION(y_rotation, xp, zp)
 
+        zp += ViewPoint_Z
+
         per_x, per_y = perspective_projection(xp, yp, zp)
-        per_x += ORIGIN_X
-        per_y += ORIGIN_Y
+        per_x += OBJECT_ORIGIN_X
+        per_y += OBJECT_ORIGIN_Y
 
         xy_plane_index = per_x, per_y
-        if xy_plane_index not in xy_plane and zp > -100:
+        if xy_plane_index not in xy_plane and zp > 0:
             xy_plane.append((per_x, per_y))
 
 def perspective_projection(xp, yp, zp):
-    pp_x = int( ( xp / ( (zp / 100) + 1) ) / 2 )
-    pp_y = int( ( yp / ( (zp / 100) + 1) ) / 2 )
+    pp_x = int( xp / ( zp / 100 + 1) )
+    pp_y = int( yp / ( zp / 100 + 1) )
     return pp_x, pp_y
 
 def draw_screen():
@@ -71,8 +73,8 @@ def plot_coordinates(stdscr):
     min_x, min_y = 1, 1
     max_x, max_y = width, height
     for x, y in zip(x_values, y_values):
-        screen_x = int( screen_center_x + (x * SCREEN_RATIO) )
-        screen_y = int( screen_centre_y + (y * SCREEN_RATIO) )
+        screen_x = int( screen_center_x + (x * SCREEN_RATIO_X) )
+        screen_y = int( screen_centre_y + (y * SCREEN_RATIO_Y) )
         if not (screen_x < 0 or screen_x > width - 1 or screen_y < 0 or screen_y > height - 1):
             try:
                 stdscr.addch(screen_y, screen_x, chr(0x2588))                
@@ -83,7 +85,6 @@ def plot_coordinates(stdscr):
     time.sleep(.1)
     
     #stdscr.getch()  # Wait for user input before exiting
-    stdscr.erase()
 
 #   ___ _   _ ___ _____ 
 #   |_ _| \ | |_ _|_   _|
@@ -95,46 +96,41 @@ def plot_coordinates(stdscr):
 
 x_object, y_object, z_object = [], [], []
 file_path = "object_data.csv"
-import_object(file_path,-0, 0, -12)
+#import_object(file_path,-0, 0, -12)# spoon
 
-SCREEN_RATIO = 1
-SCALE_RATIO = 3
-TO_INC = 20
-
-GRID_RATIO = 4
-GRID_WIDTH = 64 * GRID_RATIO
-GRID_HEIGHT =32 * GRID_RATIO
-GRID_DEPTH = 16 * GRID_RATIO
-
-ORIGIN_X = GRID_WIDTH / 2
-ORIGIN_Y = GRID_HEIGHT / 2
-ORIGIN_Z = GRID_DEPTH / 2
-
-ORIGIN_X = 0
-ORIGIN_Y = 0
-ORIGIN_Z = 0
+import_object(file_path, 0, 0, 0) #
+SCREEN_RATIO_X = 1
+SCREEN_RATIO_Y = .5
+SCALE_RATIO = 1
+TO_INC = 1
 
 
-x_rotation = 0
-x_rotation_inc = int(random.random()*3)
-y_rotation = 0
-y_rotation_inc = int(random.random()*4)
-z_rotation = 0
-z_rotation_inc = int(random.random()*5)
+OBJECT_ORIGIN_X = 0
+OBJECT_ORIGIN_Y = 0
+OBJECT_ORIGIN_Z = 64
+
+ViewPoint_Z = 32
+
+x_rotation = int(random.random() * 360 )
+x_rotation_inc = int(random.random() * 5 )
+y_rotation = int(random.random() * 360 )
+y_rotation_inc = int(random.random() * 5)
+z_rotation = int(random.random() * 360 )
+z_rotation_inc = int(random.random() * 5 )
 
 
-#x_rotation = 5
+#x_rotation = 0
 #x_rotation_inc = 0
 #y_rotation = 0
-#y_rotation_inc = 7
-#z_rotation = 45
-#z_rotation_inc = 4
+#y_rotation_inc = 5
+#z_rotation = 0
+#z_rotation_inc = 0
 
 while True:
     xy_plane = []
     transform_object(TO_INC)
     draw_screen()
 
-    x_rotation += x_rotation_inc
-    y_rotation += y_rotation_inc
-    z_rotation += z_rotation_inc
+    x_rotation += (x_rotation_inc % 360)
+    y_rotation += (y_rotation_inc % 360)
+    z_rotation += (z_rotation_inc % 360)

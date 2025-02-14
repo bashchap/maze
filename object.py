@@ -144,7 +144,7 @@ def walk_the_grid():
                 X_switch = ((int(grid_X / GRID_X_INC_MAJ)) % 2)
 
     #''' Determine if these coordinates represents the corner of a box to be printed'''
-                if (Z_switch ^ Y_switch ^ X_switch):
+                if (Z_switch ^ Y_switch ^ X_switch) or True:
                     write_grid_box(grid_X, grid_Y, grid_Z)
 
     #'''Move to the next X grid point'''
@@ -171,9 +171,9 @@ def XYZ_ROTATION(theta, p1, p2):
 #                     
 
 
-GRID_RATIO = 4
+GRID_RATIO = 1
 
-GRID_WIDTH = 64 * GRID_RATIO
+GRID_WIDTH = 32 * GRID_RATIO
 GRID_HEIGHT =32 * GRID_RATIO
 GRID_DEPTH = 32 * GRID_RATIO
 
