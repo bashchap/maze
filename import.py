@@ -43,6 +43,8 @@ def transform_object(TO_INC):
         zp, yp = XYZ_ROTATION(x_rotation, rel_z, yp)
         xp, zp = XYZ_ROTATION(y_rotation, xp, zp)
 
+        xp += ViewPoint_X
+        yp += ViewPoint_Y
         zp += ViewPoint_Z
 
         per_x, per_y = perspective_projection(xp, yp, zp)
@@ -50,7 +52,7 @@ def transform_object(TO_INC):
         per_y += OBJECT_ORIGIN_Y
 
         xy_plane_index = per_x, per_y
-        if xy_plane_index not in xy_plane: # and zp > 0:
+        if xy_plane_index not in xy_plane and zp > 0:
             xy_plane.append((per_x, per_y))
 
 def perspective_projection(xp, yp, zp):
@@ -59,7 +61,7 @@ def perspective_projection(xp, yp, zp):
     return pp_x, pp_y
 
 def noise(x, y, z):
-    n1 = ((x + y + z) / 2) * math.tan(math.radians(x + y + z)) 
+    n1 = math.sin((x+y+z) ) * 5
     return x + n1, y + n1, z + n1
 #    return x, y, z
 
@@ -89,7 +91,7 @@ def plot_coordinates(stdscr):
                 pass  # Ignore errors when trying to plot outside boundaries
 
     stdscr.refresh()
-    time.sleep(.1)
+    time.sleep(.05)
     
     #stdscr.getch()  # Wait for user input before exiting
 
@@ -108,7 +110,7 @@ file_path = "object_data.csv"
 import_object(file_path, 0, 0, 0) #
 SCREEN_RATIO_X = 1
 SCREEN_RATIO_Y = .5
-SCALE_RATIO = 2
+SCALE_RATIO = 6
 TO_INC = 1
 
 
@@ -116,20 +118,27 @@ OBJECT_ORIGIN_X = 0
 OBJECT_ORIGIN_Y = 0
 OBJECT_ORIGIN_Z = 64
 
-ViewPoint_Z = 32
+
+ViewPoint_X = 0
+ViewPoint_Y = 0
+ViewPoint_Z = 196
+
+ViewPoint_X_MIN_INC = 0
+ViewPoint_Y_MIN_INC = 0
+ViewPoint_Z_MIN_INC = 0
 
 x_rotation = int(random.random() * 360 )
-x_rotation_inc = int(random.random() * 5 )
+x_rotation_inc = int(random.random() * 3 )
 y_rotation = int(random.random() * 360 )
-y_rotation_inc = int(random.random() * 5)
+y_rotation_inc = int(random.random() * 2)
 z_rotation = int(random.random() * 360 )
-z_rotation_inc = int(random.random() * 5 )
+z_rotation_inc = int(random.random() * 2 )
 
 
 #x_rotation = 0
 #x_rotation_inc = 0
 #y_rotation = 0
-#y_rotation_inc = 5
+#y_rotation_inc = 0
 #z_rotation = 0
 #z_rotation_inc = 0
 
@@ -141,3 +150,7 @@ while True:
     x_rotation += (x_rotation_inc % 360)
     y_rotation += (y_rotation_inc % 360)
     z_rotation += (z_rotation_inc % 360)
+
+    ViewPoint_X += ViewPoint_X_MIN_INC
+    ViewPoint_Y += ViewPoint_Y_MIN_INC
+    ViewPoint_Z += ViewPoint_Z_MIN_INC
