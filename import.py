@@ -33,11 +33,12 @@ def transform_object(TO_INC):
     for vector in range(0, len( x_object ), TO_INC ):
         xo, yo, zo = x_object[vector], y_object[vector], z_object[vector]
 
-        rel_x = (xo - OBJECT_ORIGIN_X) * SCALE_RATIO
-        rel_y = (yo - OBJECT_ORIGIN_Y) * SCALE_RATIO
-        rel_z = (zo - OBJECT_ORIGIN_Z) * SCALE_RATIO
+        rel_x = (xo - ViewPoint_X) * SCALE_RATIO
+        rel_y = (yo - ViewPoint_Y) * SCALE_RATIO
+        rel_z = (zo - ViewPoint_Z) * SCALE_RATIO
         
-        rel_x, rel_y, rel_z = noise(rel_x, rel_y, rel_z)
+        #rel_x, rel_y, rel_z = noise(rel_x, rel_y, rel_z)
+
 
         xp, yp = XYZ_ROTATION(z_rotation, rel_x, rel_y)
         zp, yp = XYZ_ROTATION(x_rotation, rel_z, yp)
@@ -48,11 +49,11 @@ def transform_object(TO_INC):
         zp += ViewPoint_Z
 
         per_x, per_y = perspective_projection(xp, yp, zp)
-        per_x += OBJECT_ORIGIN_X
-        per_y += OBJECT_ORIGIN_Y
+        per_x += ViewPoint_X
+        per_y += ViewPoint_Y
 
         xy_plane_index = per_x, per_y
-        if xy_plane_index not in xy_plane and zp > 0:
+        if xy_plane_index not in xy_plane: # and zp > 0:
             xy_plane.append((per_x, per_y))
 
 def perspective_projection(xp, yp, zp):
@@ -61,9 +62,9 @@ def perspective_projection(xp, yp, zp):
     return pp_x, pp_y
 
 def noise(x, y, z):
-    n1 = math.sin((x+y+z) ) * 5
-    return x + n1, y + n1, z + n1
-#    return x, y, z
+ #   n1 = math.sin((x+y+z) ) * 5
+ #   return x + n1, y + n1, z + n1
+   return x, y, z
 
 def draw_screen():
     global x_values, y_values
@@ -107,21 +108,21 @@ x_object, y_object, z_object = [], [], []
 file_path = "object_data.csv"
 #import_object(file_path,-0, 0, -12)# spoon
 
-import_object(file_path, 0, 0, 0) #
+import_object(file_path, 0 ,0, -64)
 SCREEN_RATIO_X = 1
 SCREEN_RATIO_Y = .5
-SCALE_RATIO = 6
+SCALE_RATIO = 1
 TO_INC = 1
 
 
 OBJECT_ORIGIN_X = 0
 OBJECT_ORIGIN_Y = 0
-OBJECT_ORIGIN_Z = 64
+OBJECT_ORIGIN_Z = -64
 
 
 ViewPoint_X = 0
 ViewPoint_Y = 0
-ViewPoint_Z = 196
+ViewPoint_Z = 0
 
 ViewPoint_X_MIN_INC = 0
 ViewPoint_Y_MIN_INC = 0
@@ -132,11 +133,11 @@ x_rotation_inc = int(random.random() * 3 )
 y_rotation = int(random.random() * 360 )
 y_rotation_inc = int(random.random() * 2)
 z_rotation = int(random.random() * 360 )
-z_rotation_inc = int(random.random() * 2 )
+z_rotation_inc = int(random.random() * 4 )
 
 
 #x_rotation = 0
-#x_rotation_inc = 0
+#x_rotation_inc = 1
 #y_rotation = 0
 #y_rotation_inc = 0
 #z_rotation = 0
@@ -150,6 +151,10 @@ while True:
     x_rotation += (x_rotation_inc % 360)
     y_rotation += (y_rotation_inc % 360)
     z_rotation += (z_rotation_inc % 360)
+
+ #   ViewPoint_X_MIN_INC = 1 * math.cos(math.radians(x_rotation))
+ #   ViewPoint_Y_MIN_INC = 1 * math.cos(math.radians(y_rotation))
+ #   ViewPoint_Z_MIN_INC = 1 * math.cos(math.radians(z_rotation))
 
     ViewPoint_X += ViewPoint_X_MIN_INC
     ViewPoint_Y += ViewPoint_Y_MIN_INC
